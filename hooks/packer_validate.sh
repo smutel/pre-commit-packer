@@ -19,13 +19,22 @@ util::parse_cmdline "$@"
 
 util::get_unique_directory_paths "${FILES[@]}"
 
-error=0
-
+pids=()
 for path in "${UNIQUE_PATHS[@]}"; do
-  pushd "$path" > /dev/null
+  # Check each path in parallel
+  {
+    pushd "$path" > /dev/null
+    packer init . > /dev/null
+    packer validate "${ARGS[@]}" .
+  } &
+  pids+=("$!")
+done
 
-  packer init . > /dev/null
-  if ! packer validate "${ARGS[@]}" .; then
+error=0
+exit_code=0
+for pid in "${pids[@]}"; do
+  wait "$pid" || exit_code=$?
+  if [[ $exit_code -ne 0 ]]; then
     error=1
   fi
 done
