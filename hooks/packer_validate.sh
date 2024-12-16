@@ -27,9 +27,6 @@ for path in "${UNIQUE_PATHS[@]}"; do
   packer init . > /dev/null
   if ! packer validate "${ARGS[@]}" .; then
     error=1
-    echo
-    echo "Failed path: $path"
-    echo "================================"
   fi
 done
 

@@ -22,9 +22,6 @@ error=0
 for file in "${FILES[@]}"; do
   if ! packer fmt "${ARGS[@]}" -- "$file"; then
     error=1
-    echo
-    echo "Failed path: $file"
-    echo "================================"
   fi
 done
 
