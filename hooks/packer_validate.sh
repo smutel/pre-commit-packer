@@ -4,6 +4,25 @@ set -o nounset
 set -o errexit
 set -o pipefail
 
+function packer_validate() {
+  local exit_code=0
+
+  packer init . > /dev/null
+
+  # Allow us to get output if the validation fails
+  set +o errexit
+  validate_output=$(packer validate "${ARGS[@]}" . 2>&1)
+  exit_code=$?
+  set -o errexit
+
+  if [[ $exit_code -ne 0 ]]; then
+    echo "Validation failed in $path"
+    echo -e "$validate_output\n\n"
+  fi
+
+  return $exit_code
+}
+
 if [ -z "$(command -v packer)" ]; then
   echo "packer is required"
   exit 1
@@ -24,8 +43,7 @@ for path in "${UNIQUE_PATHS[@]}"; do
   # Check each path in parallel
   {
     pushd "$path" > /dev/null
-    packer init . > /dev/null
-    packer validate "${ARGS[@]}" .
+    packer_validate
   } &
   pids+=("$!")
 done
