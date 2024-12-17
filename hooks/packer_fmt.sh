@@ -17,14 +17,21 @@ source "$SCRIPT_DIR/../lib/util.sh"
 
 util::parse_cmdline "$@"
 
-error=0
-
+pids=()
 for file in "${FILES[@]}"; do
-  if ! packer fmt "${ARGS[@]}" -- "$file"; then
+  # Check each path in parallel
+  {
+    packer fmt "${ARGS[@]}" -- "$file"
+  } &
+  pids+=("$!")
+done
+
+error=0
+exit_code=0
+for pid in "${pids[@]}"; do
+  wait "$pid" || exit_code=$?
+  if [[ $exit_code -ne 0 ]]; then
     error=1
-    echo
-    echo "Failed path: $file"
-    echo "================================"
   fi
 done
 
