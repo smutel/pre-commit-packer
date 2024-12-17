@@ -17,11 +17,13 @@ source "$SCRIPT_DIR/../lib/util.sh"
 
 util::parse_cmdline "$@"
 
+util::get_unique_directory_paths "${FILES[@]}"
+
 pids=()
-for file in "${FILES[@]}"; do
+for path in "${UNIQUE_PATHS[@]}"; do
   # Check each path in parallel
   {
-    packer fmt "${ARGS[@]}" -- "$file"
+    packer fmt "${ARGS[@]}" -- "$path"
   } &
   pids+=("$!")
 done
